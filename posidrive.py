@@ -20,9 +20,12 @@ from oauth2client.client import OAuth2WebServerFlow
 from googleapiclient.errors import HttpError
 
 
-CLIENT_ID     = '757588180354-emk2okb1kdvh1khc0gg44tub9k21daeo.apps.googleusercontent.com'
-CLIENT_SECRET = 'smmJ618QmJyjF5WPgcStqUBN'
-CLIENT_SCOPE  = 'https://www.googleapis.com/auth/drive.file'
+# Maintainer's Google application.
+# For installed application client secret is NOT confidential.
+# See https://developers.google.com/identity/protocols/OAuth2#installed
+GDRIVE_CLIENT_ID     = '757588180354-emk2okb1kdvh1khc0gg44tub9k21daeo.apps.googleusercontent.com'
+GDRIVE_CLIENT_SECRET = 'smmJ618QmJyjF5WPgcStqUBN'
+GDRIVE_CLIENT_SCOPE  = 'https://www.googleapis.com/auth/drive.file'
 
 
 def programdir(*p):
@@ -128,7 +131,9 @@ class GoogleDrive(Cli):
         flags.noauth_local_webserver = True
         
         storage = Storage(self.credentials_path)
-        flow = OAuth2WebServerFlow(CLIENT_ID, CLIENT_SECRET, scope=CLIENT_SCOPE)
+        flow = OAuth2WebServerFlow(GDRIVE_CLIENT_ID,
+                                   GDRIVE_CLIENT_SECRET,
+                                   GDRIVE_CLIENT_SCOPE)
         tools.run_flow(flow, storage, flags)
 
     @Cli.method_command(name='list')
