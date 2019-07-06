@@ -15,7 +15,7 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from oauth2client.client import OAuth2WebServerFlow
 from googleapiclient.errors import HttpError
 
@@ -35,6 +35,22 @@ def programdir(*p):
     '''
     dirpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     return os.path.join(dirpath, *p)
+
+
+def savepath(filename, path=None):
+    '''
+    Returns path for save file with expand ~.
+    If path is directory, join it filename.
+    '''
+    if path:
+        path = os.path.expanduser(path)
+
+        if os.path.isdir(path):
+            return os.path.join(path, filename)
+        else:
+            return path
+    else:
+        return filename
 
 
 def rfc3339(t):
@@ -153,12 +169,39 @@ class GoogleDrive(Cli):
             
     @Cli.method_command(name='download')
     @Cli.method_argument('file_id')
-    def cmd_download(self, file_id):
+    @Cli.method_argument('path', required=False)
+    def cmd_download(self, file_id, path=None):
         '''
         Download file from Google Drive by ID
         '''
         self.initialize()
-        print(file_id)
+
+        request = self.service.files().get(fileId=file_id,
+                                           fields='name,size')
+        try:
+            info = request.execute()
+        except HttpError as e:
+            if e.resp.get('status', '404') != '404':
+                raise
+
+            print('File not found')
+            return
+
+        path = savepath(info['name'], path)
+        chunksize = int(info['size']) / 10
+
+        if chunksize < 1024*100:
+            chunksize = 1024*100
+
+        if path and info['name'] != path:
+            print('Downloading %s to %s' % (info['name'], path))
+        else:
+            print('Downloading %s' % (info['name']))
+
+        def callback(self, downloader, status):
+            print('Download %d%%' % int(status.progress() * 100))
+
+        self.download(file_id, path, chunksize, callback)
 
     @Cli.method_command(name='upload')
     @Cli.method_argument('path')
@@ -243,7 +286,6 @@ class GoogleDrive(Cli):
         file = self.service.files().create(body=body, fields='id').execute()
         return file['id']
 
-    
     def upload(self, path, name, parents=[]):
         body = {
             'name': name,
@@ -259,6 +301,17 @@ class GoogleDrive(Cli):
                                              fields='id').execute()
         return result
 
+    def download(self, file_id, path, chunksize=1048576, callback=None):
+        callback = callback or (lambda *args: None)
+
+        with open(path, 'wb') as f:
+            request = self.service.files().get_media(fileId=file_id)
+            downloader = MediaIoBaseDownload(f, request, chunksize=chunksize)
+            done = False
+
+            while not done:
+                status, done = downloader.next_chunk(num_retries=1)
+                callback(self, downloader, status)
 
 
 
