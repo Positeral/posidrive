@@ -111,7 +111,8 @@ class GoogleDrive(Cli):
         super(GoogleDrive, self).__init__()
 
         self.service = None
-        self.folder = folder
+        self.active_folder_id = None
+        self.active_folder_name = folder
 
         if credentials:
             self.credentials_path = os.path.expand(credentials)
@@ -124,7 +125,7 @@ class GoogleDrive(Cli):
         Show common information
         '''
         rows = [
-            ('Default remote folder:', self.folder),
+            ('Default remote folder:', self.active_folder_name),
             ('Credentials file:', self.credentials_path)
         ]
 
@@ -244,10 +245,19 @@ class GoogleDrive(Cli):
             raise UnauthorizedError('Not authorized (offline)')
 
         return credentials
+
+    def activefolder(self, name=None):
+        name = name or self.active_folder_name
         
+        if name != self.active_folder_name or not self.active_folder_id:
+            self.active_folder_id = self.setfolder(name)
+            self.active_folder_name = name
+
+        return self.active_folder_id
+
     def fetchfiles(self, folder_id=None, count=999):
         if not folder_id:
-            folder_id = self.setfolder(self.folder)
+            folder_id = self.activefolder()
         
         q = "mimeType != 'application/vnd.google-apps.folder' and " \
             "'{folder_id}' in parents and " \
