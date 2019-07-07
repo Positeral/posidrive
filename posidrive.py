@@ -207,13 +207,21 @@ class GoogleDrive(Cli):
     @Cli.method_command(name='upload')
     @Cli.method_argument('path')
     @Cli.method_argument('name', required=False)
-    def cmd_upload(self, path, name=''):
+    def cmd_upload(self, path, name=None):
         '''
         Upload file to Google Drive active folder
         '''
         self.initialize()
-        print(path)
-    
+
+        print('Uploading', path)
+
+        def callback(self, status):
+            print('Upload %d%%' % int(status.progress() * 100))
+
+        chunksize = os.path.getsize(path) // 10
+        self.upload(path, name, chunksize=chunksize, callback=callback)
+        print('Done.')
+
     @Cli.method_command(name='delete')
     @Cli.method_argument('file_id')
     def cmd_delete(self, file_id):
@@ -296,7 +304,16 @@ class GoogleDrive(Cli):
         file = self.service.files().create(body=body, fields='id').execute()
         return file['id']
 
-    def upload(self, path, name, parents=[]):
+    def upload(self, path, name, parents=None, chunksize=1048576, callback=None):
+        callback = callback or (lambda *args: None)
+        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144 # Align to 256 KB
+
+        if not name:
+            name = os.path.split(path)[1]
+
+        if parents is None:
+            parents = [self.activefolder()]
+
         body = {
             'name': name,
             'parents': parents
@@ -304,12 +321,19 @@ class GoogleDrive(Cli):
 
         media = MediaFileUpload(path,
                                 mimetype='application/octet-stream',
+                                chunksize=chunksize,
                                 resumable=True)
-        
-        result = self.service.files().create(body=body,
-                                             media_body=media,
-                                             fields='id').execute()
-        return result
+
+        request = self.service.files().create(body=body, media_body=media)
+        response = None
+
+        while not response:
+            status, response = request.next_chunk(num_retries=1)
+
+            if status:
+                callback(self, status)
+
+        return response['id']
 
     def download(self, file_id, path, chunksize=1048576, callback=None):
         callback = callback or (lambda *args: None)
