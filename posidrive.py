@@ -6,6 +6,7 @@ import sys
 import functools
 import warnings
 import argparse
+import math
 
 import click
 import httplib2
@@ -60,6 +61,20 @@ def rfc3339(t):
     '''
     d = datetime.strptime(t, '%Y-%m-%dT%H:%M:%S.%fZ')
     return d.strftime('%Y-%m-%d %H:%M:%S')
+
+
+
+def sizesuffix(size, suffixes=('B', 'KB', 'MB', 'GB', 'TB')):
+    '''
+    Convert size in bytes to human-readable representation.
+    '''
+    if size:
+        i = int(math.log(size, 1024))
+        s = size / (1024 ** int(math.log(size, 1024)))
+
+        return '%s%s' % (round(s, 2), suffixes[i])
+
+    return '0' + suffixes[0]
 
 
 def methodcaller(method):
@@ -136,6 +151,9 @@ class GoogleDrive(Cli):
             rows.append(('Authorization:', e.message))
         else:
             rows.append(('Authorization:', 'Authorized'))
+            quota = self.getquota()
+            rows.append(('Usage:', sizesuffix(quota['usage'])))
+            rows.append(('Limit:', sizesuffix(quota['limit'])))
 
         print(tabulate(rows, tablefmt='plain'))
 
@@ -263,6 +281,14 @@ class GoogleDrive(Cli):
             self.active_folder_name = name
 
         return self.active_folder_id
+
+    def getquota(self):
+        response = self.service.about().get(fields="storageQuota").execute()
+
+        return {
+            'limit': int(response['storageQuota']['limit']),
+            'usage': int(response['storageQuota']['usage']),
+        }
 
     def fetchfiles(self, folder_id=None, count=999):
         if not folder_id:
