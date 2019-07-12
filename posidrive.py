@@ -294,7 +294,8 @@ class GoogleDrive(Cli):
         }
 
     def getquota(self):
-        response = self.service.about().get(fields="storageQuota").execute()
+        fields = 'storageQuota(limit,usage)'
+        response = self.service.about().get(fields=fields).execute()
 
         return {
             'limit': int(response['storageQuota']['limit']),
