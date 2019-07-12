@@ -152,6 +152,8 @@ class GoogleDrive(Cli):
         else:
             rows.append(('Authorization:', 'Authorized'))
             quota = self.getquota()
+            user = self.getaccount()
+            rows.append(('Account:', user['email']))
             rows.append(('Usage:', sizesuffix(quota['usage'])))
             rows.append(('Limit:', sizesuffix(quota['limit'])))
 
@@ -281,6 +283,14 @@ class GoogleDrive(Cli):
             self.active_folder_name = name
 
         return self.active_folder_id
+
+    def getaccount(self):
+        fields = 'user(emailAddress)'
+        response = self.service.about().get(fields=fields).execute()
+
+        return {
+            'email': response['user']['emailAddress']
+        }
 
     def getquota(self):
         response = self.service.about().get(fields="storageQuota").execute()
