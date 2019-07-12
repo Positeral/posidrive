@@ -141,6 +141,7 @@ class GoogleDrive(Cli):
         Show common information
         '''
         rows = [
+            ('Service:', 'Google Drive'),
             ('Default remote folder:', self.active_folder_name),
             ('Credentials file:', self.credentials_path)
         ]
