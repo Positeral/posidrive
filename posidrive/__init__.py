@@ -167,7 +167,7 @@ class GoogleDrive(Cli):
         flags = argparse.Namespace()
         flags.logging_level = 'ERROR'
         flags.noauth_local_webserver = True
-        
+
         storage = Storage(self.credentials_path)
         flow = OAuth2WebServerFlow(self.CLIENT_ID,
                                    self.CLIENT_SECRET,
@@ -181,7 +181,7 @@ class GoogleDrive(Cli):
         '''
         self.initialize()
         rows = []
-        
+
         for f in self.fetchfiles():
             created = rfc3339(f['createdTime'])
             rows.append((created, f['id'], f['name'], f['size']))
@@ -261,7 +261,7 @@ class GoogleDrive(Cli):
             warnings.simplefilter("ignore")
             storage = Storage(self.credentials_path)
             return storage.get()
-    
+
     def initialize(self):
         credentials = self.get_credentials()
 
@@ -270,7 +270,7 @@ class GoogleDrive(Cli):
 
         if credentials.invalid:
             raise UnauthorizedError('Not authorized (credentials invalid)')
-        
+
         try:
             http = credentials.authorize(httplib2.Http())
             self.service = discovery.build('drive', 'v3', http=http)
@@ -280,8 +280,12 @@ class GoogleDrive(Cli):
         return credentials
 
     def activefolder(self, name=None):
+        '''
+        Return current folder ID on Google Drive.
+        If folder is not exists on Google Drive, it will be created and set.
+        '''
         name = name or self.active_folder_name
-        
+
         if name != self.active_folder_name or not self.active_folder_id:
             self.active_folder_id = self.setfolder(name)
             self.active_folder_name = name
@@ -331,14 +335,14 @@ class GoogleDrive(Cli):
         q = "name='%s' and " \
             "mimeType='application/vnd.google-apps.folder' and " \
             "trashed=false" % name.replace("'", r"\'")
-        
+
         results = self.service.files().list(pageSize=1, fields="files(id)", q=q).execute()
         items = results.get('files', [])
 
         if items:
             return items[0]['id']
-        
-        # targed folder not exists, create it
+
+        # Targed folder not exists, create it
         body = {
             'name': name,
             'mimeType': 'application/vnd.google-apps.folder'
@@ -348,7 +352,8 @@ class GoogleDrive(Cli):
 
     def upload(self, path, name, parents=None, chunksize=1048576, callback=None):
         callback = callback or (lambda *args: None)
-        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144 # Align to 256 KB
+        # Align to 256 KB
+        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144
 
         if not name:
             name = os.path.split(path)[1]
