@@ -250,7 +250,11 @@ class GoogleDrive(Cli):
         Delete file by ID
         '''
         self.initialize()
-        print(file_id)
+
+        if self.delete(file_id):
+            print('Deleted.')
+        else:
+            print('Not found.')
 
     def get_credentials(self):
         with warnings.catch_warnings():
@@ -372,6 +376,18 @@ class GoogleDrive(Cli):
                 callback(self, status)
 
         return response['id']
+
+    def delete(self, file_id):
+        request = self.service.files().delete(fileId=file_id)
+
+        try:
+            response = request.execute()
+            return True
+        except HttpError as e:
+            if e.resp.get('status', '404') != '404':
+                raise
+
+            return False
 
     def download(self, file_id, path, chunksize=1048576, callback=None):
         callback = callback or (lambda *args: None)
