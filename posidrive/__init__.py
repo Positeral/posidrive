@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
+import time
 import functools
 import warnings
 import argparse
@@ -20,6 +21,18 @@ from oauth2client.file import Storage
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from oauth2client.client import OAuth2WebServerFlow
 from googleapiclient.errors import HttpError
+
+
+def log(*args, to=None):
+    '''
+    Shortcut to print() with date prefix.
+    To disable ligging, set log.enable = False
+    '''
+    if log.enable:
+        prefix = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        print(prefix, *args, file=to or sys.stdout)
+
+log.enable = True
 
 
 def programdir(*p):
