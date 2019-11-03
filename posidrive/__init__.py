@@ -276,7 +276,10 @@ class GoogleDrive(Cli):
             storage = Storage(self.credentials_path)
             return storage.get()
 
-    def initialize(self):
+    def initialize(self, force=False):
+        if not force and self.service:
+            return
+
         credentials = self.get_credentials()
 
         if not credentials:
