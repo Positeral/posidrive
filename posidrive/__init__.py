@@ -197,7 +197,8 @@ class GoogleDrive(Cli):
 
         for f in self.fetchfiles():
             created = rfc3339(f['createdTime'])
-            rows.append((created, f['id'], f['name'], f['size']))
+            size = sizesuffix(int(f['size']))
+            rows.append((created, f['id'], f['name'], size))
 
         headers = ['Created', 'ID', 'Name', 'Size']
         print(tabulate(rows, headers, tablefmt='plain'))
