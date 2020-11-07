@@ -1,8 +1,7 @@
-click
-tabulate
-oauth2client
-google-auth
-google-api-python-client
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
+click==7.1.2
+tabulate==0.8.7
+httplib2==0.15.0
+google-auth==1.23.0
+google-api-python-client==1.12.5
+google-auth-httplib2==0.0.4
+google-auth-oauthlib==0.4.2
