@@ -207,7 +207,6 @@ class GoogleDrive:
     @cli.exception_handler()
     def exception(self, e):
         print('EXCEPTION:', e)
-        return True
 
     @cli.command('auth', replacement=False)
     @click.option('--scope', multiple=True, default=['drive.file'])
@@ -225,7 +224,6 @@ class GoogleDrive:
     def cmd_status(self):
         '''Show common information
         '''
-
         rows = [
             ('Service:', 'Google Drive'),
             ('Current remote folder:', self.current_folder_name),

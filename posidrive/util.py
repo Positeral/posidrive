@@ -50,8 +50,12 @@ class ObjectiveGroup(click.Group):
         try:
             return super().invoke(ctx)
         except Exception as e:
-            if self.exception_handler_callback(e):
+            value = self.exception_handler_callback(e)
+
+            if value is None:
                 raise
+
+            return value
 
 def programdir(*p):
     '''Return absolute path to the program's directory with joining *p.
