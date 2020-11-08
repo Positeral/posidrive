@@ -48,6 +48,19 @@ def programdir(*p):
     return os.path.join(dirpath, *p)
 
 
+def pathtosave(filename, path=None):
+    '''Return path to save file.
+    If `path` is directory, join it `filename`. Ignore `filename` otherwise.
+    '''
+    if path:
+        if os.path.isdir(path):
+            return os.path.join(path, filename)
+        else:
+            return path
+    else:
+        return filename
+
+
 def sizesuffix(size, suffixes=('B', 'KB', 'MB', 'GB', 'TB')):
     '''Convert size in bytes to human-readable representation.
     '''
