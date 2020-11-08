@@ -7,9 +7,10 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.errors import HttpError
 from tabulate import tabulate
 
-from posidrive.util import ClickMixin, ObjectiveGroup, click, echo
+from posidrive.util import ObjectiveGroup, click, echo
 from posidrive.util import programdir, pathtosave, sizesuffix, strdate
 
 
@@ -35,9 +36,9 @@ client_config = {
     }
 }
 
-class GoogleDrive(ClickMixin):
+class GoogleDrive:
     def __init__(self, folder, credentials_path=None):
-        super().__init__()
+        self.cli.bind_class_instance(self)
 
         self.service = None
         self.current_folder_id = None
@@ -203,6 +204,11 @@ class GoogleDrive(ClickMixin):
     def cli(self):
         pass
 
+    @cli.exception_handler()
+    def exception(self, e):
+        print('EXCEPTION:', e)
+        return True
+
     @cli.command('auth', replacement=False)
     @click.option('--scope', multiple=True, default=['drive.file'])
     def cmd_auth(self, scope=['drive.file']):
@@ -219,6 +225,7 @@ class GoogleDrive(ClickMixin):
     def cmd_status(self):
         '''Show common information
         '''
+
         rows = [
             ('Service:', 'Google Drive'),
             ('Current remote folder:', self.current_folder_name),

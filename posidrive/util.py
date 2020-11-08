@@ -11,22 +11,16 @@ from tabulate import tabulate
 from dateutil.parser import isoparse
 
 
-class ClickMixin:
-    '''Base class that allows methods to work with click module
-    '''
-    def __init__(self):
-        for attributename in dir(self):
-            attribute = getattr(self, attributename)
-
-            if isinstance(attribute, click.Command):
-                attribute.callback = MethodType(attribute.callback, self)
-
-                # Handle Group-like members
-                for command in getattr(attribute, 'commands', {}).values():
-                    command.callback = MethodType(command.callback, self)
-
-
 class ObjectiveGroup(click.Group):
+    def bind_class_instance(self, instance):
+        for command in self.commands.values():
+            command.callback = MethodType(command.callback, instance)
+
+        self.exception_handler_callback = \
+            MethodType(self.exception_handler_callback, instance)
+
+        self.callback = MethodType(self.callback, instance)
+
     def command(self, *args, **kwargs):
         '''The same as :func:`click.Group.command` but can
         return original function with `replacement=False` parameter
@@ -50,8 +44,7 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
-    def exception_handler_callback(self, e):
-        return True
+    exception_handler_callback = lambda *args: True
 
     def invoke(self, ctx):
         try:
