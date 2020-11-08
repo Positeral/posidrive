@@ -10,7 +10,7 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from tabulate import tabulate
 
 from posidrive.util import ClickMixin, ObjectiveGroup, click, echo
-from posidrive.util import programdir, sizesuffix, strdate
+from posidrive.util import programdir, pathtosave, sizesuffix, strdate
 
 
 class AuthorizationError(click.ClickException):
@@ -186,6 +186,19 @@ class GoogleDrive(ClickMixin):
 
         return response['id']
 
+    def download(self, file_id, path, chunksize=1048576, callback=None):
+        callback = callback or (lambda *args: None)
+        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144 # Align to 256 Kb
+
+        with open(path, 'wb') as f:
+            request = self.service.files().get_media(fileId=file_id)
+            downloader = MediaIoBaseDownload(f, request, chunksize=chunksize)
+            done = False
+
+            while not done:
+                status, done = downloader.next_chunk(num_retries=1)
+                callback(self, downloader, status)
+
     @click.group(cls=ObjectiveGroup)
     def cli(self):
         pass
@@ -259,6 +272,29 @@ class GoogleDrive(ClickMixin):
         self.upload(path, name, chunksize=chunksize, callback=callback)
         echo('Done.')
 
+    @cli.command('download', replacement=False)
+    @click.argument('file_id')
+    @click.argument('path', required=False)
+    def cmd_download(self, file_id, path=None):
+        '''Download file from Google Drive by ID
+        '''
+        self.initialize()
+
+        request = self.service.files().get(fileId=file_id, fields='name,size')
+        info = request.execute()
+
+        path = pathtosave(info['name'], path)
+        chunksize = int(info['size']) / 10
+
+        if path and info['name'] != path:
+            echo(f'Downloading {info["name"]} to {path}')
+        else:
+            echo(f'Downloading {info["name"]}')
+
+        def callback(self, downloader, status):
+            echo(f'Download {int(status.progress() * 100)}%')
+
+        self.download(file_id, path, chunksize, callback)
 
 
 
