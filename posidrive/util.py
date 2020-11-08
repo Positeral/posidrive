@@ -40,6 +40,25 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
+    def exception_handler(self):
+        '''Register a function to handle exceptions in subcommands.
+        If handler returns True, re-raise exception.
+        '''
+        def decorator(f):
+            self.exception_handler_callback = f
+            return f
+
+        return decorator
+
+    def exception_handler_callback(self, e):
+        return True
+
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except Exception as e:
+            if self.exception_handler_callback(e):
+                raise
 
 def programdir(*p):
     '''Return absolute path to the program's directory with joining *p.
