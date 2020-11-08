@@ -32,9 +32,9 @@ class ObjectiveGroup(click.Group):
         return original function with `replacement=False` parameter
         '''
         superclass = super()
-        
+        replacement = kwargs.pop('replacement', True)
+
         def decorator(f):
-            replacement = kwargs.pop('replacement', True)
             cmd = superclass.command(*args, **kwargs)(f)
             return cmd if replacement else f
 
