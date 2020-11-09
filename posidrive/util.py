@@ -34,21 +34,25 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
-    def exception_handler(self):
+    def exception_handler(self, ignore=(click.ClickException,)):
         '''Register a function to handle exceptions in subcommands.
-        If handler returns True, re-raise exception.
+        If handler returns None, re-raise exception.
         '''
         def decorator(f):
             self.exception_handler_callback = f
+            self.exception_handler_ignore = ignore
             return f
 
         return decorator
 
     exception_handler_callback = lambda *args: None
+    exception_handler_ignore = (click.ClickException,)
 
     def invoke(self, ctx):
         try:
             return super().invoke(ctx)
+        except self.exception_handler_ignore:
+            raise
         except Exception as e:
             value = self.exception_handler_callback(ctx, e)
 
