@@ -200,6 +200,10 @@ class GoogleDrive:
                 status, done = downloader.next_chunk(num_retries=1)
                 callback(self, downloader, status)
 
+    def delete(self, file_id):
+        request = self.service.files().delete(fileId=file_id)
+        request.execute()
+
     @click.group(cls=ObjectiveGroup)
     @click.option('--debug/', is_flag=True, help='Enable debug mode')
     def cli(self, debug=False):
@@ -309,6 +313,15 @@ class GoogleDrive:
             echo(f'Download {int(status.progress() * 100)}%')
 
         self.download(file_id, path, chunksize, callback)
+
+    @cli.command('delete')
+    @click.argument('file_id')
+    def cmd_delete(self, file_id):
+        '''Delete file by ID
+        '''
+        self.initialize()
+        self.delete(file_id)
+        echo('Ok.')
 
 
 
