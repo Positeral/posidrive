@@ -87,7 +87,8 @@ class GoogleDrive:
         '''
         path = path or self.credentials_path
 
-        with open(os.open(path, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as f:
+        with open(path, 'w') as f:
+            os.chmod(path, 0o600)
             f.write(credentials.to_json())
 
         return path
