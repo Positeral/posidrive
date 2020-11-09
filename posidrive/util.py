@@ -44,7 +44,7 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
-    exception_handler_callback = lambda *args: True
+    exception_handler_callback = lambda *args: None
 
     def invoke(self, ctx):
         try:
