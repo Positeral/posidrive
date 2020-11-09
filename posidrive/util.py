@@ -50,7 +50,7 @@ class ObjectiveGroup(click.Group):
         try:
             return super().invoke(ctx)
         except Exception as e:
-            value = self.exception_handler_callback(e)
+            value = self.exception_handler_callback(ctx, e)
 
             if value is None:
                 raise

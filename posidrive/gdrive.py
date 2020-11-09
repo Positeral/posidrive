@@ -201,12 +201,21 @@ class GoogleDrive:
                 callback(self, downloader, status)
 
     @click.group(cls=ObjectiveGroup)
-    def cli(self):
+    @click.option('--debug/', is_flag=True, help='Enable debug mode')
+    def cli(self, debug=False):
         pass
 
     @cli.exception_handler()
-    def exception(self, e):
-        print('EXCEPTION:', e)
+    def exception(self, ctx, e):
+        if ctx.params.get('debug'):
+            return
+
+        if isinstance(e, HttpError):
+            echo(e._get_reason())
+        else:
+            echo(e)
+
+        ctx.abort()
 
     @cli.command('auth', replacement=False)
     @click.option('--scope', multiple=True, default=['drive.file'])
