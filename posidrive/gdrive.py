@@ -282,7 +282,7 @@ class GoogleDrive:
         '''
         self.initialize()
 
-        echo('Uploading', path)
+        echo(f'Uploading {path}')
 
         def callback(self, status):
             echo(f'Upload {int(status.progress() * 100)}%')
