@@ -274,7 +274,7 @@ class GoogleDrive:
 
     @cli.command('auth', replacement=False)
     @click.option('--scope', multiple=True, default=['drive.file'])
-    def cmd_auth(self, scope=['drive.file']):
+    def cmd_auth(self, scope=('drive.file',)):
         '''Authorize Google account and save credentials
         '''
         prefix = 'https://www.googleapis.com/auth/'
