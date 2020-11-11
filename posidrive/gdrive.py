@@ -2,6 +2,7 @@ import os
 import json
 import httplib2
 
+from operator import itemgetter
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -204,6 +205,44 @@ class GoogleDrive:
     def delete(self, file_id):
         request = self.service.files().delete(fileId=file_id)
         request.execute()
+
+    def clear(self, folder_id=None, keep_first=0, keep_last=0):
+        '''Delete all files in folder.
+
+        :param folder_id: Remote folder ID. By default current folder will be used
+        :param keep_first: Do not delete N first files
+        :param keep_last: Do not delete N last files
+        :return: The number of deleted files
+        '''
+        files = self.get_files(folder_id=folder_id)
+        files = sorted(files, key=itemgetter('createdTime'))
+
+        if keep_first:
+            del files[:keep_first]
+
+        if keep_last:
+            del files[-keep_last:]
+
+        count = 0
+
+        def callback(request_id, response, exception):
+            nonlocal count
+            if exception:
+                if isinstance(exception, HttpError):
+                    if exception.resp.get('status') == '404':
+                        return
+
+                raise exception
+            else:
+                count += 1
+
+        batch = self.service.new_batch_http_request(callback=callback)
+
+        for f in files:
+            batch.add(self.service.files().delete(fileId=f['id']))
+
+        batch.execute()
+        return count
 
     @click.group(cls=ObjectiveGroup)
     @click.option('--debug/', is_flag=True, help='Enable debug mode')
