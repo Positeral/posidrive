@@ -71,8 +71,8 @@ class GoogleDrive:
 
         try:
             self.service = build('drive', 'v3', credentials=credentials)
-        except httplib2.ServerNotFoundError:
-            raise AuthorizationError('Not authorized (offline)')
+        except httplib2.ServerNotFoundError as e:
+            raise AuthorizationError('Not authorized (offline)') from e
 
     def get_credentials(self, path=None):
         '''
