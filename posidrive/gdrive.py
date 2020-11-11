@@ -206,12 +206,14 @@ class GoogleDrive:
         request = self.service.files().delete(fileId=file_id)
         request.execute()
 
-    def clear(self, folder_id=None, keep_first=0, keep_last=0):
+    def clear(self, folder_id=None, keep_first=0, keep_last=0, before=None):
         '''Delete all files in folder.
 
         :param folder_id: Remote folder ID. By default current folder will be used
         :param keep_first: Do not delete N first files
         :param keep_last: Do not delete N last files
+        :param before: A callback to be called BEFORE delete of the form callback(files).
+                       If callback return a non-None value, abort execution.
         :return: The number of deleted files
         '''
         files = self.get_files(folder_id=folder_id)
@@ -222,6 +224,15 @@ class GoogleDrive:
 
         if keep_last:
             del files[-keep_last:]
+
+        if not files:
+            return 0
+
+        if before:
+            value = before(files)
+
+            if value is not None:
+                return value
 
         count = 0
 
@@ -363,6 +374,28 @@ class GoogleDrive:
         self.delete(file_id)
         echo('Ok.')
 
+    @cli.command('clear')
+    @click.argument('folder_id', required=False)
+    @click.option('--keep-first', default=0, help='Do not delete N first files')
+    @click.option('--keep-last', default=0, help='Do not delete N last files')
+    @click.option('--yes', is_flag=True, help='Automatic yes to prompts')
+    def cmd_clear(self, folder_id=None, keep_first=0, keep_last=0, yes=False):
+        '''Delete all files in folder.
+        '''
+        def before(files):
+            rows = [(f['name'], sizesuffix(int(f['size']))) for f in files]
+            echo(f'The following {len(files)} files will be deleted:')
+            echo(tabulate(rows, [], tablefmt='plain'))
 
+            if not yes:
+                click.confirm('Do you want to continue?', abort=True)
 
+        deleted = self.clear(folder_id=folder_id,
+                             keep_first=keep_first,
+                             keep_last=keep_last,
+                             before=before)
 
+        if deleted:
+            echo('Done')
+        else:
+            echo('Nothing to delete')
