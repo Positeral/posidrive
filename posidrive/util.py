@@ -6,6 +6,8 @@ import functools
 
 from types import FunctionType, MethodType
 from click import echo
+from click.exceptions import ClickException
+from click.exceptions import Exit as ClickExit
 from datetime import datetime, timezone
 from tabulate import tabulate
 from dateutil.parser import isoparse
@@ -34,19 +36,21 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
-    def exception_handler(self, ignore=(click.ClickException,)):
+    def exception_handler(self, ignore=None):
         '''Register a function to handle exceptions in subcommands.
         If handler returns None, re-raise exception.
         '''
         def decorator(f):
+            if ignore is not None:
+                self.exception_handler_ignore = ignore
+
             self.exception_handler_callback = f
-            self.exception_handler_ignore = ignore
             return f
 
         return decorator
 
     exception_handler_callback = lambda *args: None
-    exception_handler_ignore = (click.ClickException,)
+    exception_handler_ignore = (ClickException, ClickExit)
 
     def invoke(self, ctx):
         try:
