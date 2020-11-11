@@ -51,6 +51,8 @@ class GoogleDrive:
             self.credentials_path = programdir('.pgdcredentials')
 
     def initialize(self, force=False):
+        '''Initialize the Google Drive service.
+        '''
         if not force and self.service:
             return
 
@@ -75,7 +77,7 @@ class GoogleDrive:
             raise AuthorizationError('Not authorized (offline)') from e
 
     def get_credentials(self, path=None):
-        '''
+        '''Read JSON-encoded credentials from file.
         '''
         try:
             path = path or self.credentials_path
@@ -84,7 +86,7 @@ class GoogleDrive:
             return None
 
     def put_credentials(self, credentials, path=None):
-        '''
+        '''Save credentials to file as JSON.
         '''
         path = path or self.credentials_path
 
@@ -95,6 +97,8 @@ class GoogleDrive:
         return path
 
     def get_limits(self):
+        '''Get drive usage and limit.
+        '''
         fields = 'storageQuota(limit,usage)'
         response = self.service.about().get(fields=fields).execute()
 
@@ -104,6 +108,8 @@ class GoogleDrive:
         }
 
     def get_account(self):
+        '''Get account info
+        '''
         fields = 'user(emailAddress)'
         response = self.service.about().get(fields=fields).execute()
 
@@ -112,6 +118,8 @@ class GoogleDrive:
         }
     
     def set_folder(self, name):
+        '''Create remote folder (or return an existing one) and return its ID
+        '''
         q = (
             "name='{name}' and "
             "mimeType='application/vnd.google-apps.folder' and "
@@ -134,8 +142,7 @@ class GoogleDrive:
         return response['id']
 
     def set_current_folder(self, name=None):
-        '''Return current folder ID on Google Drive.
-        if folder doesn't exist on Google Drive, it will be created and set.
+        '''Return current folder. If folder doesn't exist, create it first.
         '''
         name = name or self.current_folder_name
 
@@ -146,6 +153,8 @@ class GoogleDrive:
         return self.current_folder_id
 
     def get_files(self, folder_id=None, count=999):
+        '''Get files list. If folder_id is omitted, use current folder.
+        '''
         if not folder_id:
             folder_id = self.set_current_folder()
 
@@ -209,12 +218,12 @@ class GoogleDrive:
     def clear(self, folder_id=None, keep_first=0, keep_last=0, before=None):
         '''Delete all files in folder.
 
-        :param folder_id: Remote folder ID. By default current folder will be used
-        :param keep_first: Do not delete N first files
-        :param keep_last: Do not delete N last files
+        :param folder_id: Remote folder ID. By default current folder will be used.
+        :param keep_first: Do not delete N first files.
+        :param keep_last: Do not delete N last files.
         :param before: A callback to be called BEFORE delete of the form callback(files).
                        If callback return a non-None value, abort execution.
-        :return: The number of deleted files
+        :return: The number of deleted files.
         '''
         files = self.get_files(folder_id=folder_id)
         files = sorted(files, key=itemgetter('createdTime'))
@@ -256,7 +265,7 @@ class GoogleDrive:
         return count
 
     @click.group(cls=ObjectiveGroup)
-    @click.option('--debug/', is_flag=True, help='Enable debug mode')
+    @click.option('--debug', is_flag=True, help='Enable debug mode.')
     def cli(self, debug=False):
         pass
 
@@ -275,7 +284,7 @@ class GoogleDrive:
     @cli.command('auth', replacement=False)
     @click.option('--scope', multiple=True, default=['drive.file'])
     def cmd_auth(self, scope=('drive.file',)):
-        '''Authorize Google account and save credentials
+        '''Authorize Google account and save credentials.
         '''
         prefix = 'https://www.googleapis.com/auth/'
         scope = list(map(prefix.__add__, scope))
@@ -286,7 +295,7 @@ class GoogleDrive:
 
     @cli.command('status', replacement=False)
     def cmd_status(self):
-        '''Show common information
+        '''Show common information.
         '''
         rows = [
             ('Service:', 'Google Drive'),
@@ -311,7 +320,7 @@ class GoogleDrive:
     
     @cli.command('list', replacement=False)
     def cmd_list(self):
-        '''Show files in Google Drive active folder
+        '''Show files in current remote folder.
         '''
         self.initialize()
         rows = []
@@ -328,7 +337,7 @@ class GoogleDrive:
     @click.argument('path')
     @click.argument('name', required=False)
     def cmd_upload(self, path, name=None):
-        '''Upload file to Google Drive current folder
+        '''Upload file to current remote folder.
         '''
         self.initialize()
 
@@ -345,7 +354,7 @@ class GoogleDrive:
     @click.argument('file_id')
     @click.argument('path', required=False)
     def cmd_download(self, file_id, path=None):
-        '''Download file from Google Drive by ID
+        '''Download file by ID.
         '''
         self.initialize()
 
@@ -368,7 +377,7 @@ class GoogleDrive:
     @cli.command('delete')
     @click.argument('file_id')
     def cmd_delete(self, file_id):
-        '''Delete file by ID
+        '''Delete file by ID.
         '''
         self.initialize()
         self.delete(file_id)
@@ -376,11 +385,11 @@ class GoogleDrive:
 
     @cli.command('clear')
     @click.argument('folder_id', required=False)
-    @click.option('--keep-first', default=0, help='Do not delete N first files')
-    @click.option('--keep-last', default=0, help='Do not delete N last files')
-    @click.option('--yes', is_flag=True, help='Automatic yes to prompts')
+    @click.option('--keep-first', default=0, help='Do not delete N first files.')
+    @click.option('--keep-last', default=0, help='Do not delete N last files.')
+    @click.option('--yes', is_flag=True, help='Automatic yes to prompts.')
     def cmd_clear(self, folder_id=None, keep_first=0, keep_last=0, yes=False):
-        '''Delete all files in folder.
+        '''Delete all files in folder. By default, the current folder will be used.
         '''
         def before(files):
             rows = [(f['name'], sizesuffix(int(f['size']))) for f in files]
