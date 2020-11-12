@@ -330,8 +330,11 @@ class GoogleDrive:
             size = sizesuffix(int(f['size']))
             rows.append((created, f['id'], f['name'], size))
 
-        headers = ['Created', 'ID', 'Name', 'Size']
-        echo(tabulate(rows, headers, tablefmt='plain'))
+        if rows:
+            headers = ['Created', 'ID', 'Name', 'Size']
+            echo(tabulate(rows, headers, tablefmt='plain'))
+        else:
+            echo('No files')
 
     @cli.command(name='upload', replacement=False)
     @click.argument('path')
