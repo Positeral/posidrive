@@ -1,4 +1,5 @@
 import os
+import re
 from setuptools import setup, find_packages
 
 scriptdir = os.path.dirname(os.path.abspath(__file__))
@@ -9,9 +10,12 @@ with open(os.path.join(scriptdir, 'requirements.txt')) as f:
 with open(os.path.join(scriptdir, 'README.md')) as f:
     long_description = f.read()
 
+with open(os.path.join(scriptdir, 'posidrive/__init__.py')) as f:
+    version = re.search(r"__version__\s*=\s*'(.*?)'", f.read()).group(1)
+
 setup(name='posidrive',
       packages=find_packages(),
-      version='0.0.2',
+      version=version,
       license='BSD License',
       author='Arthur Goncharuk',
       author_email='af3.inet@gmail.com',
