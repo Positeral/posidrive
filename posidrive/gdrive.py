@@ -349,7 +349,7 @@ class GoogleDrive:
         echo(f'Uploading {path}')
 
         def callback(self, status):
-            echo(f'Upload {int(status.progress() * 100)}%')
+            echo(f'{int(status.progress() * 100)}% ', nl=False)
 
         chunksize = os.path.getsize(path) // 10
         self.upload(path, name, chunksize=chunksize, callback=callback)
@@ -375,9 +375,10 @@ class GoogleDrive:
             echo(f'Downloading {info["name"]}')
 
         def callback(self, downloader, status):
-            echo(f'Download {int(status.progress() * 100)}%')
+            echo(f'{int(status.progress() * 100)}% ', nl=False)
 
         self.download(file_id, path, chunksize, callback)
+        echo('Done.')
 
     @cli.command('delete', replacement=False)
     @click.argument('file_id')
