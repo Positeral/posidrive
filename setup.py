@@ -22,13 +22,17 @@ setup(name='posidrive',
       long_description=long_description,
       long_description_content_type='text/markdown',
       url='https://github.com/Positeral/posidrive',
+      install_requires=requirements,
+      python_requires='>=3.6',
+      zip_safe=False,
       classifiers=[
+          'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: BSD License',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: Implementation :: CPython'
+          "Operating System :: OS Independent",
+          "Programming Language :: Python :: 3",
           'Topic :: Software Development :: Libraries',
-      ],
-      install_requires=requirements,
-      zip_safe=False
+          'Topic :: Internet :: WWW/HTTP',
+          'Topic :: Utilities'
+      ]
 )
