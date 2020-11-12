@@ -377,7 +377,7 @@ class GoogleDrive:
 
         self.download(file_id, path, chunksize, callback)
 
-    @cli.command('delete')
+    @cli.command('delete', replacement=False)
     @click.argument('file_id')
     def cmd_delete(self, file_id):
         '''Delete file by ID.
@@ -386,7 +386,7 @@ class GoogleDrive:
         self.delete(file_id)
         echo('Ok.')
 
-    @cli.command('clear')
+    @cli.command('clear', replacement=False)
     @click.argument('folder_id', required=False)
     @click.option('--keep-first', default=0, help='Do not delete N first files.')
     @click.option('--keep-last', default=0, help='Do not delete N last files.')
