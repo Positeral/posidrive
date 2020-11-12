@@ -21,6 +21,7 @@ setup(name='posidrive',
       author_email='af3.inet@gmail.com',
       long_description=long_description,
       long_description_content_type='text/markdown',
+      url='https://github.com/Positeral/posidrive',
       classifiers=[
           'Intended Audience :: Developers',
           'License :: OSI Approved :: BSD License',
