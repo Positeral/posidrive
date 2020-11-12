@@ -171,11 +171,12 @@ class GoogleDrive:
         response = request.execute()
         return response.get('files', [])
     
-    def upload(self, path, name=None, parents=None, chunksize=1048576, callback=None):
+    def upload(self, path, name=None, parents=None, chunksize=0, callback=None):
         name = name or os.path.split(path)[1]
         parents = parents or [self.set_current_folder()]
         callback = callback or (lambda *args: None)
-        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144 # Align to 256 Kb
+         # Align to 256 Kb
+        chunksize = (((chunksize or 1048576) + 262144 - 1) // 262144) * 262144
 
         body = {
             'name': name,
@@ -198,9 +199,10 @@ class GoogleDrive:
 
         return response['id']
 
-    def download(self, file_id, path, chunksize=1048576, callback=None):
+    def download(self, file_id, path, chunksize=0, callback=None):
         callback = callback or (lambda *args: None)
-        chunksize = ((chunksize + 262144 - 1) // 262144) * 262144 # Align to 256 Kb
+         # Align to 256 Kb
+        chunksize = (((chunksize or 1048576) + 262144 - 1) // 262144) * 262144
 
         with open(path, 'wb') as f:
             request = self.service.files().get_media(fileId=file_id)
