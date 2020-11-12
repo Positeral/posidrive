@@ -396,6 +396,8 @@ class GoogleDrive:
     def cmd_clear(self, folder_id=None, keep_first=0, keep_last=0, yes=False):
         '''Delete all files in folder. By default, the current folder will be used.
         '''
+        self.initialize()
+
         def before(files):
             rows = [(f['name'], sizesuffix(int(f['size']))) for f in files]
             echo(f'The following {len(files)} files will be deleted:')
