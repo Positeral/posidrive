@@ -36,6 +36,9 @@ class ObjectiveGroup(click.Group):
 
         return decorator
 
+    def list_commands(self, ctx):
+        return list(self.commands)
+
     def exception_handler(self, ignore=None):
         '''Register a function to handle exceptions in subcommands.
         If handler returns None, re-raise exception.
