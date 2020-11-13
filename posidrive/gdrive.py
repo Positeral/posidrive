@@ -9,9 +9,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from googleapiclient.errors import HttpError
-from tabulate import tabulate
 
-from posidrive.util import ObjectiveGroup, click, echo
+from posidrive.util import ObjectiveGroup, click, echo, table
 from posidrive.util import programdir, pathtosave, sizesuffix, strdate
 
 
@@ -318,7 +317,7 @@ class GoogleDrive:
             rows.append(('Usage:', sizesuffix(limits['usage'])))
             rows.append(('Limit:', sizesuffix(limits['limit'])))
 
-        echo(tabulate(rows, tablefmt='plain'))
+        echo(table(rows))
     
     @cli.command('list', replacement=False)
     def cmd_list(self):
@@ -330,11 +329,11 @@ class GoogleDrive:
         for f in self.get_files():
             created = strdate(f['createdTime'])
             size = sizesuffix(int(f['size']))
-            rows.append((created, f['id'], f['name'], size))
+            rows.append((created, f['id'], size, f['name']))
 
         if rows:
-            headers = ['Created', 'ID', 'Name', 'Size']
-            echo(tabulate(rows, headers, tablefmt='plain'))
+            rows.insert(0, ['Created', 'ID', 'Size', 'Name'])
+            echo(table(rows, colstransform={2: str.rjust}))
         else:
             echo('No files')
 
@@ -402,7 +401,7 @@ class GoogleDrive:
         def before(files):
             rows = [(f['name'], sizesuffix(int(f['size']))) for f in files]
             echo(f'The following {len(files)} files will be deleted:')
-            echo(tabulate(rows, [], tablefmt='plain'))
+            echo(table(rows))
 
             if not yes:
                 click.confirm('Do you want to continue?', abort=True)

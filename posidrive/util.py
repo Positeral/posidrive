@@ -115,3 +115,23 @@ def strdate(t=None, fmt='%Y-%m-%d %H:%M:%S', tolocal=True):
         d = d.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
     return d.strftime(fmt)
+
+
+# Like max(), but compares by length
+maxlen = functools.partial(max, key=len)
+
+
+def table(rows, colstransform={}):
+    '''Make aligned table
+
+    :param rows: Iterable with rows
+    :param colstransform: Mapping in form {ncol: callable(str, align)},
+                          i. e. table(rows, colstransform={0: str.rjust})
+    '''
+    colsalign = tuple(map(len, map(maxlen, *rows)))
+
+    def line(row):
+        for i, (cell, align) in enumerate(zip(row, colsalign)):
+            yield colstransform.get(i, str.ljust)(cell, align)
+
+    return '\n'.join(' '.join(line(i)).rstrip() for i in rows)
