@@ -88,7 +88,7 @@ def pathtosave(filename, path=None):
         return filename
 
 
-def sizesuffix(size, suffixes=(' B', ' KB', ' MB', ' GB', ' TB')):
+def sizesuffix(size, suffixes=('B', 'K', 'M', 'G', 'T')):
     '''Convert size in bytes to human-readable representation.
     '''
     size = int(size)
@@ -96,7 +96,7 @@ def sizesuffix(size, suffixes=(' B', ' KB', ' MB', ' GB', ' TB')):
     if size:
         index = int(math.log(size, 1024))
         value = size / (1024 ** index)
-        return '%.2f%s' % (value, suffixes[index])
+        return f'{value:.1f}'.rstrip('0').rstrip('.') + suffixes[index]
 
     return '0' + suffixes[0]
 
