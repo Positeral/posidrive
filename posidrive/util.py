@@ -9,7 +9,6 @@ from click import echo
 from click.exceptions import ClickException
 from click.exceptions import Exit as ClickExit
 from datetime import datetime, timezone
-from tabulate import tabulate
 from dateutil.parser import isoparse
 
 
@@ -102,7 +101,11 @@ def sizesuffix(size, suffixes=('B', 'K', 'M', 'G', 'T')):
 
 
 def strdate(t=None, fmt='%Y-%m-%d %H:%M:%S', tolocal=True):
-    '''
+    '''Format `t` parameter to string representation.
+
+    :param t: Time. May be None, str or datetime.
+    :param fmt: Style string. See time.strftime call.
+    :param tolocal: If True, convert UTC date to local time.
     '''
     if t is None:
         d = datetime.utcnow()
@@ -126,7 +129,7 @@ def table(rows, colstransform={}):
 
     :param rows: Iterable with rows
     :param colstransform: Mapping in form {ncol: callable(str, align)},
-                          i. e. table(rows, colstransform={0: str.rjust})
+                          e. g. table(rows, colstransform={0: str.rjust})
     '''
     colsalign = tuple(map(len, map(maxlen, *rows)))
 

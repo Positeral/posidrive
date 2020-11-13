@@ -171,6 +171,8 @@ class GoogleDrive:
         return response.get('files', [])
     
     def upload(self, path, name=None, parents=None, chunksize=0, callback=None):
+        '''Upload file.
+        '''
         name = name or os.path.split(path)[1]
         parents = parents or [self.set_current_folder()]
         callback = callback or (lambda *args: None)
@@ -199,6 +201,15 @@ class GoogleDrive:
         return response['id']
 
     def download(self, file_id, path, chunksize=0, callback=None):
+        '''Download file by ID.
+
+        :param file_id: File ID.
+        :param path: Destination path.
+        :param chunksize: File will be uploaded in chunks of this many bytes.
+                          The value will always be aligned to 256 Kb.
+                          If the value is 0, it will be set to 1048576 (256 Kb).
+        :param callback: An callback to be called on every transferred chunk.
+        '''
         callback = callback or (lambda *args: None)
          # Align to 256 Kb
         chunksize = (((chunksize or 1048576) + 262144 - 1) // 262144) * 262144
@@ -213,6 +224,10 @@ class GoogleDrive:
                 callback(self, downloader, status)
 
     def delete(self, file_id):
+        '''Delete file by ID.
+
+        :param file_id: The file ID.
+        '''
         request = self.service.files().delete(fileId=file_id)
         request.execute()
 
@@ -283,7 +298,7 @@ class GoogleDrive:
         ctx.abort()
 
     @cli.command('auth', replacement=False)
-    @click.option('--scope', multiple=True, default=['drive.file'])
+    @click.option('--scope', multiple=True, default=['drive.file'], help='Permissions scope')
     def cmd_auth(self, scope=('drive.file',)):
         '''Authorize Google account and save credentials.
         '''
