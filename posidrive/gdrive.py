@@ -271,7 +271,7 @@ class GoogleDrive:
         pass
 
     @cli.exception_handler()
-    def exception(self, ctx, e):
+    def cli_exception(self, ctx, e):
         if ctx.params.get('debug'):
             return
 
