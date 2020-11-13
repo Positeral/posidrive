@@ -37,7 +37,7 @@ client_config = {
 }
 
 class GoogleDrive:
-    def __init__(self, folder, credentials_path=None):
+    def __init__(self, *, folder, credentials_path=None):
         self.cli.bind_class_instance(self)
 
         self.service = None
