@@ -1,5 +1,4 @@
 import os
-import json
 import httplib2
 
 from operator import itemgetter
